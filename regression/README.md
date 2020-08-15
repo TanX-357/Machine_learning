@@ -1,0 +1,2 @@
+### Prediction of estimated package that a college student would get in placement season based on paramenters such as learning hours,test score,practice set scores,regularity etc of students.
+### Deployed regression based on kNN and decision trees,tuning the hyperparameter involved using k-fold cross validation(as the training set was small).Here tree score was used as a metric for choosing the optimal tree.
