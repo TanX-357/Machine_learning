@@ -214,7 +214,7 @@ for i in range(1,len(tree_list)):
     tree_list[i].append((tree_list[i][1]-tree_list[i-1][1])/(tree_list[i-1][2]-tree_list[i][2]))
     x.append((tree_list[i][1]-tree_list[i-1][1])/(tree_list[i-1][2]-tree_list[i][2]))
 
-trr = []
+trr = [] #HOLDING TREE SCORE FOR DIFFERENT VALUES OF OUR HYPERPARAME
 for i in range(len(x)):
     trr.append(0)
 from sklearn.model_selection import KFold
@@ -222,68 +222,67 @@ from sklearn.model_selection import KFold
 kf = KFold(n_splits=10)
 kf.get_n_splits(X)
 for train_index, test_index in kf.split(X):
-    #     print("TRAIN:", train_index, "TEST:", test_index)
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = y[train_index], y[test_index]
-    mnm = construct_tree(X_train, y_train, 20, 0)
-    curr_tree_size = tree_size(mnm)
-    #     print(ee,'t')
-    tum = []
+    root_node = construct_tree(X_train, y_train, 20, 0)
+    curr_tree_size = tree_size(root_node)
+    mse_plus_tr_sz = [] # USED FOR HOLDING MSE FOR A GIVEN PRUNED TREE AND THE PRUNED TREE-SIZE
     xr = []
     yy = []
 
     indices = 1
     for im in X_test:
-        yy.append(predict(mnm, im))
+        yy.append(predict(root_node, im)) #predicting he output labels for a  full tree(no_pruning)
     right_predicted = np.array(yy)
     difference = right_predicted - np.array(y_test)
     trr[0] = trr[0] + np.sum(np.square(difference))
-    tum.append([mse_for_given_tree(mnm), curr_tree_size])
-    st = []
-    nmn = create_copy_of_node(mnm)
-    ss = list(reduce_nodes(mnm))
-    while mnm.right is not None and mnm.left is not None and indices < len(x):
+    mse_plus_tr_sz.append([mse_for_given_tree(root_node), curr_tree_size])
+    st = [] #using it just to store the previous value of ss
+    copy_of_root_node = create_copy_of_node(root_node)
+    ss = list(reduce_nodes(root_node))
+    while root_node.right is not None and root_node.left is not None and indices < len(x):
         yy = []
-        while mnm.right is not None and mnm.left is not None and (
-                (ss[0] - tum[-1][0]) / (tum[-1][1] - ss[1]) <= x[indices]):
+        # pruning the tree based on given x[i] value
+        while root_node.right is not None and root_node.left is not None and (
+                (ss[0] - mse_plus_tr_sz[-1][0]) / (mse_plus_tr_sz[-1][1] - ss[1]) <= x[indices]):
             st = ss
-            nmn = create_copy_of_node(mnm)
-            ss = list(reduce_nodes(mnm))
-        if mnm.right is not None:
+            copy_of_root_node = create_copy_of_node(root_node)
+            ss = list(reduce_nodes(root_node))
+        if root_node.right is not None:
             if (len(st)):
-                tum.append(st)
+                mse_plus_tr_sz.append(st)
             else:
-                tum.append(ss)
+                mse_plus_tr_sz.append(ss)
             for im in X_test:
-                yy.append(predict(nmn, im))
+                yy.append(predict(copy_of_root_node, im)) #predicting ouput for a given pruned tree 
             right_predicted = np.array(yy)
             difference = right_predicted - np.array(y_test)
-            trr[indices] = trr[indices] + np.sum(np.square(difference))
+            trr[indices] = trr[indices] + np.sum(np.square(difference)) #adding mse value for a given pruned tree for a given test and train data for given x[i] value(hyperparameter)
             indices += 1
         else:
-            while len(tum) < len(x):
+            while len(mse_plus_tr_sz) < len(x):
                 yy = []
-                if ((ss[0] - tum[-1][0]) / (tum[-1][1] - ss[1]) <= x[indices]):
-                    tum.append(ss)
+                if ((ss[0] - mse_plus_tr_sz[-1][0]) / (mse_plus_tr_sz[-1][1] - ss[1]) <= x[indices]):
+                    mse_plus_tr_sz.append(ss)
                     for im in X_test:
-                        yy.append(predict(mnm, im))
+                        yy.append(predict(root_node, im))
                     right_predicted = np.array(yy)
                     difference = right_predicted - np.array(y_test)
                     trr[indices] = trr[indices] + np.sum(np.square(difference))
                     indices += 1
                 else:
-                    tum.append(st)
+                    mse_plus_tr_sz.append(st)
                     for im in X_test:
-                        yy.append(predict(nmn, im))
+                        yy.append(predict(copy_of_root_node, im))
                     right_predicted = np.array(yy)
                     difference = right_predicted - np.array(y_test)
                     trr[indices] = trr[indices] + np.sum(np.square(difference))
                     indices += 1
 
-msem = 0
+best_val_of_hyper = 0
 for i in range(1, len(trr)):
-    if trr[i] < trr[msem]:
-        msem = i
+    if trr[i] < trr[best_val_of_hyper]:
+        best_val_of_hyper= i
 
 
 
@@ -292,11 +291,11 @@ if __name__ == "__main__":
     c = sys.argv[1]
     for i in range(2, len(sys.argv)):
         c += ' ' + sys.argv[i]
-    Xio = np.genfromtxt(c, dtype=np.float64, delimiter=',', skip_header=1)
+    test_data = np.genfromtxt(c, dtype=np.float64, delimiter=',', skip_header=1)
     for i in range(len(X)):
         yy = []
-        for im in Xio:
-            yy.append(predict(tree_list[msem][0], im))
+        for im in test_data:
+            yy.append(predict(tree_list[best_val_of_hyper][0], im))
     rst={}
     with open('predicted_test_Y_re.csv', 'w') as g:
         writer = csv.DictWriter(g, fieldnames=['t'])

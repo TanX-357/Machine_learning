@@ -6,7 +6,7 @@ import csv
 
 t_data=pd.read_csv("train_X_rf.csv")
 y = np.genfromtxt('train_Y_rf.csv', dtype=np.float64, delimiter=',', skip_header=0)
-t_data['out']=y
+t_data['out']=y #mergigng the input and output training dataset as my implementation requires that
 train_XY=np.array(t_data)
 class Node:
     def __init__(self, predicted_class, depth):
@@ -181,6 +181,8 @@ if __name__ == "__main__":
         c += ' ' + sys.argv[i]
     Xio = np.genfromtxt(c, dtype=np.float64, delimiter=',', skip_header=1)
     rst={}
+    #note here 50 is the best hyperparameter value obtained after tuning code attached
+    # at the end as comment..where hyperparameter has bn found on using coarse grain search
     bootstrap_samples = get_bootstrap_samples(list(train_XY), 50)
     models=get_trained_models_using_bagging(train_XY, 50,bootstrap_samples)
     with open('predicted_test_Y_rf.csv', 'w') as g:
@@ -188,3 +190,31 @@ if __name__ == "__main__":
         for test_X in Xio:
             rst['t'] = predict_using_bagging(models, test_X)
             writer.writerow(rst)
+
+#COMPUTING THE VALUE OF HYPERPARAMETER
+#One thing to note here is that there are two hyperparameters involved,
+# one is no of training_and_testing dataset we are generating from single dataset
+# another is the no of attributes we are considering easch time for split_data_set
+# but the second normally comes out to be the square root of the first..(through observations and studies it has been shown)
+# so we just need to compute the first..which goes on:
+# hyperpara_k=[10,15,20,25,30,35,40,45,50]
+# least_error=float('inf')
+# best_k=0
+# for i in hyperpara_k:
+#     bootstrap_samples=get_bootstrap_samples(list(train_XY), i)
+#     print(type(bootstrap_samples))
+#     new_error=get_out_of_bag_error(get_trained_models_using_bagging(train_XY, i,bootstrap_samples), train_XY, bootstrap_samples)
+#     if new_error<least_error:
+#         least_error=new_error
+#         best_k=i
+# 50 was obtained from above;
+# hyperpara_k=[46,47,48,49,50,51,52,53,54]
+# least_error=float('inf')
+# best_k=0
+# for i in hyperpara_k:
+#     bootstrap_samples=get_bootstrap_samples(list(train_XY), i)
+#     print(type(bootstrap_samples))
+#     new_error=get_out_of_bag_error(get_trained_models_using_bagging(train_XY, i,bootstrap_samples), train_XY, bootstrap_samples)
+#     if new_error<least_error:
+#         least_error=new_error
+#         best_k=i

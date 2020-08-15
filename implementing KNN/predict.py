@@ -50,24 +50,21 @@ def calculate_accuracy(predicted_Y, actual_Y):
 
 
 def get_best_k_using_validation_set(train_X, train_Y, validation_split_percent, n_in_ln_norm_distance):
-    mm = -1
-    c = 0
+    maximum_accuracy = -1
+    best_k=0
     kk = math.floor((100 - validation_split_percent) * len(train_Y) / 100)
     for i in range(2, kk + 1):
         predicted_Y = classify_points_using_knn(train_X[:kk], train_Y[:kk], train_X[kk:], n_in_ln_norm_distance, i)
-        r = calculate_accuracy(predicted_Y, train_Y[kk:])
-        if (r > mm):
-            mm = r
-            c = i
-
-    # sorted(r,key=lambda x:(x[0],x[1]))
-    return c
+        acc_using_curr_k_val = calculate_accuracy(predicted_Y, train_Y[kk:])
+        if (acc_using_curr_k_val > maximum_accuracy):
+            maximum_accuracy = acc_using_curr_k_val
+            best_k = i
+    return best_k
 
 train_X = np.genfromtxt('train_X_knn.csv', dtype=np.float64, delimiter=',', skip_header=1)
 train_Y = np.genfromtxt('train_Y_knn.csv', dtype=np.float64, delimiter=',', skip_header=0)
-# train_X, X_test,train_Y, y_test = train_test_split(X, Y, test_size=0.1)
 sc = StandardScaler()
-train_X = sc.fit_transform(train_X)
+train_X = sc.fit_transform(train_X) #scaling the input parameters to avoid overflow condition in knn
 validation_split_percent = 74
 n_ln_norm = 3
 best_k = get_best_k_using_validation_set(train_X, train_Y, validation_split_percent, n_ln_norm)
@@ -86,7 +83,7 @@ if __name__ == "__main__":
     for i in range(2, len(sys.argv)):
         c += ' ' + sys.argv[i]
     train_data = np.genfromtxt(c, dtype=np.float64, delimiter=',', skip_header=1)
-    train_data=sc.fit_transform(train_data)
+    train_data=sc.fit_transform(train_data) #again scaling the input parameters
     train_data = classify_points_using_knn(train_X, train_Y, train_data, n_ln_norm, k)
     rst = {}
     with open('predicted_test_Y_knn.csv', 'w') as g:

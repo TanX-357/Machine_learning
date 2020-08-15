@@ -70,9 +70,6 @@ def get_class_wise_denominators_likelihood(X, Y, class_wise_frequency_dict):
 
     vocabulary = list(set(vocabulary))
 
-    #     for c in classes:
-    #         class_wise_denominators[c] += alpha*len(vocabulary)
-
     return class_wise_denominators, len(vocabulary)
 
 
@@ -120,10 +117,19 @@ if __name__ == "__main__":
     for i in t_data:
         X.append(preprocessing(i))
     rst = {}
-    final_Y=predict(X,cwfd,cwdl,0.01,vocab,prior_prob)
+    final_Y=predict(X,cwfd,cwdl,0.01,vocab,prior_prob) #computed 0.01(smoothening) through hypertuning whose code i have included in the end as comment
     with open('predicted_test_Y_nb.csv', 'w') as g:
         writer = csv.DictWriter(g, fieldnames=['t'])
         for i in range(len(final_Y)):
             rst['t'] = final_Y[i]
             writer.writerow(rst)
-
+# THE CODE WHERE I COMPUTED THE VALUE OF SMOOTHENING CONSTANT THROUGH COARSE GRAIN METHOD
+# from sklearn import metrics
+# PROBABLE_SMOOTHENING_VALUE=[0.00001,0.0001,0.001,0.01,0.1]
+# best_accuracy=0
+# best_smoothening_value=0
+# for i in PROBABLE_SMOOTHENING_VALUE:
+#     Y_actual=predict(X_test,cwfd,cwdl,i,vocab,prior_prob)
+#     if(metrics.accuracy_score(y_test, Y_actual)>best_accuracy):
+#         best_accuracy=metrics.accuracy_score(y_test,Y_actual)
+#         best_smoothening_value=i

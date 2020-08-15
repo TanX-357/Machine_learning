@@ -17,7 +17,7 @@ clf = LogisticRegression(penalty='l2',random_state=0).fit(train_X, y_train)
 
 import pickle
 saved_model = pickle.dumps(clf)
-knn_from_pickle = pickle.loads(saved_model)
+lr_from_pickle = pickle.loads(saved_model)
 rst={}
 if __name__ == "__main__":
     import sys
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         c += ' ' + sys.argv[i]
     X_test = np.genfromtxt(c, dtype=np.float64, delimiter=',', skip_header=1)
     test_X = sc.fit_transform(X_test)
-    train_data = knn_from_pickle.predict(test_X)
+    train_data = lr_from_pickle.predict(test_X)
     with open('predicted_test_Y_lg.csv', 'w') as g:
         writer = csv.DictWriter(g, fieldnames=['t'])
         for i in range(len(train_data)):

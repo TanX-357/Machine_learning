@@ -104,20 +104,16 @@ def predict(root, X):
             node = node.right
     return node.predicted_class
 st=Node(0,0)
-# print("OMG")
 st=construct_tree(train_X[:int(0.7*len(train_X))],train_Y,10000,1,0)
-# print(OMG)
 if __name__ == "__main__":
     import sys
     c = sys.argv[1]
     for i in range(2, len(sys.argv)):
         c += ' ' + sys.argv[i]
     train_data = np.genfromtxt(c, dtype=np.float64, delimiter=',', skip_header=1)
-    # result_data = classify_points_using_knn(train_X, train_Y, train_data, n_ln_norm, k)
     rst = {}
     with open('predicted_test_Y_de.csv', 'w') as g:
         writer = csv.DictWriter(g, fieldnames=['t'])
         for i in range(len(train_data)):
             rst['t'] = int(predict(st,train_data[i]))
-            # print(train_data[i], "OMG!!")
             writer.writerow(rst)
